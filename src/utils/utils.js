@@ -10,15 +10,15 @@ export function getUrlParamsFromString(urlString) {
   
     params.forEach((value, key) => {
       paramsObject[key] = value
-    });
+    })
   
     return paramsObject
   }
 
   export function headersToObject(headers) {
-    const headersObject = {};
+    const headersObject = {}
     for (const [key, value] of headers.entries()) {
-        headersObject[key] = value;
+        headersObject[key] = value
     }
-    return headersObject;
+    return headersObject
   }

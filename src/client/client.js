@@ -119,7 +119,7 @@ export default class Client {
                     throw new Error(e)
                 }
                 return res
-            });
+            })
 
             // TODO: err handling
             let responses = await Promise.all(batchRequests)
