@@ -166,6 +166,14 @@ export const expectedDataProductsAll_request2 = {
     ]
 }
 
+export const expectedDataProductsAll_request_further = {
+    meta: {
+        include_test_products: 'false',
+        _endpoint: '/products',
+    },
+    data: []
+}
+
 export const expectedDataProductsAll = {
     meta: {
         include_test_products: 'false',

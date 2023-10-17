@@ -1,23 +1,23 @@
 {
-  "name": "bitrefill-api-v2",
-  "version": "0.0.9",
-  "description": "Bitrefill v2 API client",
-  "scripts": {
-    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest",
-    "test:coverage": "jest --coverage"
-  },
-  "author": "Tobias Hoffmann (lacksfish)",
-  "license": "MIT",
-  "type": "module",
-  "dependencies": {
-    "dotenv": "^16.3.1",
-    "jest": "^29.7.0",
-    "save-dev": "^0.0.1-security"
-  },
-  "devDependencies": {
-    "jest-fetch-mock": "^3.0.3"
-  },
-  "imports": {
-    "#dao/*": "./src/dao/*"
-  }
+    "name": "bitrefill-api-v2",
+    "version": "0.0.9",
+    "description": "Bitrefill v2 API client",
+    "scripts": {
+        "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest",
+        "test:coverage": "jest --coverage"
+    },
+    "author": "Tobias Hoffmann (lacksfish)",
+    "license": "MIT",
+    "type": "module",
+    "dependencies": {
+        "dotenv": "^16.3.1",
+        "jest": "^29.7.0",
+        "save-dev": "^0.0.1-security"
+    },
+    "devDependencies": {
+        "jest-fetch-mock": "^3.0.3"
+    },
+    "imports": {
+        "#dao/*": "./src/dao/*"
+    }
 }

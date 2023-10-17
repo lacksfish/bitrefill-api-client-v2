@@ -61,11 +61,12 @@ describe('Client', () => {
         const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
 
         // Mock API response
-        // fetchMock.mockResponse(JSON.stringify(testing.expectedDataProductsAll))
         fetchMock.mockResponses(
             [JSON.stringify(testing.expectedDataProductsAll_request1)],
-            [JSON.stringify(testing.expectedDataProductsAll_request2)]
-        );
+            [JSON.stringify(testing.expectedDataProductsAll_request2)],
+            // The other 8 requests of a 10 request batch would be empty when using batched requests
+            ...[...Array(8)].map((_, i) => JSON.stringify(testing.expectedDataProductsAll_request_further))
+        )
 
         const result = await client.productsAll()
         expect(result).toEqual(testing.expectedDataProductsAll)
