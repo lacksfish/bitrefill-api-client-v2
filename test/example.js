@@ -25,9 +25,8 @@ const checkForPayment = async (client, pay_invoice_data) => {
 let c = new Client(process.env.API_USER_ID, process.env.API_SECRET_KEY)
 
 // Request all products, then filter all test products
-// let allProducts = await c.productsAll(true)
-import fs from 'fs'
-let allProducts = JSON.parse(fs.readFileSync('./products_all.json').toString())
+let allProducts = await c.productsAll(true)
+
 
 // Need to filter out false-positive with id: "test-kitchen-phillipines"
 const testProducts = allProducts.data.filter((product) => product.id.startsWith("test-gift-card") || product.id.startsWith("test-phone-refill"))
@@ -53,6 +52,10 @@ invoice = await c.createInvoice(productToBuy['id'], productToBuy['packages'][0][
 pay_invoice_data = await c.payInvoice(invoice['data']['id'])
 await checkForPayment(c, pay_invoice_data)
 
+
+// // Get all products from json file
+// import fs from 'fs'
+// let allProducts = JSON.parse(fs.readFileSync('./products_all.json').toString())
 
 
 // // Extract all products to json file

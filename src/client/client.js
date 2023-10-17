@@ -1,4 +1,4 @@
-import {delay, headersToObject, getUrlParamsFromString} from '../utils/utils.js'
+import { delay, headersToObject, getUrlParamsFromString } from '../utils/utils.js'
 
 // TODO check and handle exceptions
 
@@ -20,7 +20,7 @@ export default class Client {
         return headers
     }
 
-    async request(method, endpoint, params=null) {
+    async request(method, endpoint, params = null) {
         const headers = this._prepare_headers()
         let response
         if (method.toLowerCase() == 'get') {
@@ -51,7 +51,6 @@ export default class Client {
         } else {
             return response
         }
-        
     }
 
     // --- API METHODS ---
@@ -67,7 +66,7 @@ export default class Client {
         return data
     }
 
-    async products(start=0, limit=50, include_test_products=false) {
+    async products(start = 0, limit = 50, include_test_products = false) {
         // Support for options parameters
         if (typeof start == 'object') {
             const options = start
@@ -85,43 +84,63 @@ export default class Client {
         return data
     }
 
-    async productsAll(include_test_products=false) {
+    async productsAll(include_test_products = false) {
         let products = {
             // TODO: Should provide synth meta data for batched request ?
-            "meta": {"_endpoint": "/products", "include_test_products": `${include_test_products}`,},
-            "data": [ ]
+            "meta": { "_endpoint": "/products", "include_test_products": `${include_test_products}`, },
+            "data": []
         }
 
-        var res = await this.request('GET', 'products', {include_test_products})
-        var data = await res.json()
-        products.data = data.data
+        // TODO/NOTE: Too many requests will get you temporarily banned on Cloudflare :(
+        const increment = 50 // Max limit per request
+        let batchSize = 10 // TODO: Consider adding this as a func arg
+        let count = 0
+        let doRequests = true
 
-        let next = data.meta._next
-
-        while (next) {
-            let params = getUrlParamsFromString(next)
-            res = await this.request('GET', 'products', {
-                ...params,
-                include_test_products
+        while (doRequests) {
+            // Prepare parameters for batch requests
+            const batch = [...Array(batchSize)].map((_, i) => {
+                return {
+                    start: (i * increment) + (count * batchSize * increment),
+                    limit: increment
+                }
             })
-            var data
-            if(res.ok) {
-                data = await res.json()
-            } else {
-                // TODO: this is only in because we could be hitting cloudflare rate limits
-                console.log('Hitting unexpected rate limit ... waiting 10s')
-                await delay(10 * 1000)
-                continue
-            }
-            products.data = products.data.concat(data.data)
-            next = data.meta._next
+
+            // Do fetch requests in parallel
+            const batchRequests = batch.map(async (params) => {
+                let res = await this.request('GET', 'products', {
+                    ...params,
+                    include_test_products
+                })
+                try {
+                    res = await res.json()
+                } catch (e) {
+                    console.error(e)
+                    throw new Error(e)
+                }
+                return res
+            });
+
+            // TODO: err handling
+            let responses = await Promise.all(batchRequests)
+            responses.map((response, idx) => {
+                // If last element in batch, check if more products are available
+                if (idx + 1 == batchSize && response.meta._next) {
+                    doRequests = true
+                    count += 1
+                } else {
+                    doRequests = false
+                }
+
+                products.data = products.data.concat(response.data)
+            })
         }
 
         return products
     }
 
     // TODO eval all params...
-    async createInvoice(product_id, value, quantity, auto_pay=false, payment_method="balance", webhook_url=null) {
+    async createInvoice(product_id, value, quantity, auto_pay = false, payment_method = "balance", webhook_url = null) {
         // Support for options parameters
         if (typeof product_id == 'object') {
             const options = product_id
@@ -144,7 +163,7 @@ export default class Client {
             "payment_method": payment_method // bitcoin
         }
         if (webhook_url) body['webhook_url'] = webhook_url
-        
+
         const res = await this.request('POST', 'invoices', body)
         const data = await res.json()
         return data
@@ -157,7 +176,7 @@ export default class Client {
     }
 
     async payInvoice(invoice_id) {
-        const res = await this.request('POST', `invoices/${invoice_id}/pay`, { })
+        const res = await this.request('POST', `invoices/${invoice_id}/pay`, {})
         const data = await res.json()
         return data
     }
@@ -169,7 +188,7 @@ export default class Client {
     }
 
     // A way to wait for payment completion without relying on the webhook service
-    async waitForInvoicePayment(invoice_id, seconds_between_checks=10, max_attempts=undefined) {
+    async waitForInvoicePayment(invoice_id, seconds_between_checks = 10, max_attempts = undefined) {
         let invoice_data = await this.getInvoice(invoice_id)
         let attempts = 0
         // TODO: Which states do we want to wait on
@@ -180,8 +199,7 @@ export default class Client {
             }
             attempts += 1
 
-            console.log(`Payment not processed yet, waiting ${seconds_between_checks} seconds.`)
-            // TODO: perhaps add max wait time option (see args)
+            console.log(`Payment not processed yet, waiting ${seconds_between_checks} seconds. (attempt ${attempts}/${max_attempts})`)
             await delay(seconds_between_checks * 1000)
             invoice_data = await this.getInvoice(invoice_id)
         }
