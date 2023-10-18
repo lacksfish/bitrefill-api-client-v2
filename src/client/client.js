@@ -1,17 +1,15 @@
-import { delay, headersToObject, getUrlParamsFromString } from '../utils/utils.js'
-
-// TODO check and handle exceptions
+import { delay, headersToObject } from '../utils/utils.js'
+import { handleAPIError } from './errorHandler.js'
 
 export default class Client {
     url
 
-    constructor(api_id, api_secret_key) {
-        // TODO: Make this a param ? (for staging or localhost env's)
-        this.url = 'https://api-bitrefill.com/v2'
-        this.authorization = btoa(api_id + ':' + api_secret_key)
+    constructor(apiId, apiSecretKey, url = 'https://api-bitrefill.com/v2') {
+        this.url = url
+        this.authorization = btoa(apiId + ':' + apiSecretKey)
     }
 
-    _prepare_headers() {
+    _prepareHeaders() {
         const headers = {
             'accept': 'application/json',
             'Authorization': `Basic ${this.authorization}`,
@@ -21,16 +19,17 @@ export default class Client {
     }
 
     async request(method, endpoint, params = null) {
-        const headers = this._prepare_headers()
+        const headers = this._prepareHeaders()
         let response
-        if (method.toLowerCase() == 'get') {
+        method = method.toUpperCase()
+        if (method == 'GET') {
             response = await fetch(`${this.url}/${endpoint}?` + new URLSearchParams({
                 ...params
             }), {
                 method,
                 headers
             })
-        } else if (method.toLowerCase() == 'post') {
+        } else if (method == 'POST') {
             headers['Content-Type'] = 'application/json'
             response = await fetch(`${this.url}/${endpoint}`, {
                 method,
@@ -47,22 +46,19 @@ export default class Client {
         if (responseHeaders['ratelimit-remaining'] == 0) {
             console.log(`Rate limit hit, waiting ${responseHeaders['ratelimit-reset']} seconds`)
             await delay(responseHeaders['ratelimit-reset'] * 1000)
-            return response
-        } else {
-            return response
         }
+
+        return handleAPIError(endpoint, response)
     }
 
     // --- API METHODS ---
     async ping() {
-        const res = await this.request('GET', 'ping')
-        const data = await res.json()
+        const data = await this.request('GET', 'ping')
         return data
     }
 
     async balance() {
-        const res = await this.request('GET', 'accounts/balance')
-        const data = await res.json()
+        const data = await this.request('GET', 'accounts/balance')
         return data
     }
 
@@ -75,12 +71,11 @@ export default class Client {
             include_test_products = options.include_test_products || false
         }
 
-        const res = await this.request('GET', 'products', {
+        const data = await this.request('GET', 'products', {
             start,
             limit,
-            include_test_products
+            'include_test_products': include_test_products
         })
-        const data = await res.json()
         return data
     }
 
@@ -91,9 +86,9 @@ export default class Client {
             "data": []
         }
 
-        // TODO/NOTE: Too many requests will get you temporarily banned on Cloudflare :(
+        // TODO/NOTE: Too many simultaneous requests will get you temporarily banned on Cloudflare :(
         const increment = 50 // Max limit per request
-        let batchSize = 10 // TODO: Consider adding this as a func arg
+        const batchSize = 10
         let count = 0
         let doRequests = true
 
@@ -106,34 +101,32 @@ export default class Client {
                 }
             })
 
-            // Do fetch requests in parallel
+            // Fetch batch in parallel
             const batchRequests = batch.map(async (params) => {
                 let res = await this.request('GET', 'products', {
                     ...params,
                     include_test_products
                 })
-                try {
-                    res = await res.json()
-                } catch (e) {
-                    console.error(e)
-                    throw new Error(e)
-                }
                 return res
             })
 
-            // TODO: err handling
-            let responses = await Promise.all(batchRequests)
-            responses.map((response, idx) => {
-                // If last element in batch, check if more products are available
-                if (idx + 1 == batchSize && response.meta._next) {
-                    doRequests = true
-                    count += 1
-                } else {
-                    doRequests = false
-                }
+            try {
+                let responses = await Promise.all(batchRequests)
+                responses.map((response, idx) => {
+                    // If last element in batch, check if more products are available
+                    if (idx + 1 == batchSize && response.meta._next) {
+                        doRequests = true
+                        count += 1
+                    } else {
+                        doRequests = false
+                    }
 
-                products.data = products.data.concat(response.data)
-            })
+                    products.data = products.data.concat(response.data)
+                })
+            } catch (error) {
+                console.error('Error in batch requests:', error)
+                throw new Error(error)
+            }
         }
 
         return products
@@ -149,7 +142,7 @@ export default class Client {
             quantity = options.quantity
             auto_pay = options.auto_pay || false
             payment_method = options.payment_method || 'balance'
-            webhook_url = options.webhook_url
+            webhook_url = options.webhook_url || null
         }
         let body = {
             "products": [
@@ -164,46 +157,43 @@ export default class Client {
         }
         if (webhook_url) body['webhook_url'] = webhook_url
 
-        const res = await this.request('POST', 'invoices', body)
-        const data = await res.json()
+        const data = await this.request('POST', 'invoices', body)
         return data
     }
 
-    async getInvoice(invoice_id) {
-        const res = await this.request('GET', `invoices/${invoice_id}`)
-        const data = await res.json()
+    async getInvoice(invoiceId) {
+        const data = await this.request('GET', `invoices/${invoiceId}`)
         return data
     }
 
-    async payInvoice(invoice_id) {
-        const res = await this.request('POST', `invoices/${invoice_id}/pay`, {})
-        const data = await res.json()
+    async payInvoice(invoiceId) {
+        const data = await this.request('POST', `invoices/${invoiceId}/pay`, {})
         return data
     }
 
-    async getOrder(order_id) {
-        const res = await this.request('GET', `orders/${order_id}`)
-        const data = await res.json()
+    // TODO: args - check docs
+    async getOrder(orderId) {
+        const data = await this.request('GET', `orders/${orderId}`)
         return data
     }
 
     // A way to wait for payment completion without relying on the webhook service
-    async waitForInvoicePayment(invoice_id, seconds_between_checks = 10, max_attempts = undefined) {
-        let invoice_data = await this.getInvoice(invoice_id)
+    async waitForInvoicePayment(invoiceId, secondsBetweenChecks = 10, maxAttempts = undefined) {
+        let invoiceData = await this.getInvoice(invoiceId)
         let attempts = 0
         // TODO: Which states do we want to wait on
         const statusWorthChecking = ['unpaid', 'processing', 'payment_confirmed']
-        while (statusWorthChecking.includes(invoice_data['data']['payment']['status'])) {
-            if (max_attempts > 0 && attempts >= max_attempts) {
-                throw new Error(`Waiting for payment processing not final after ${max_attempts} attempts`)
+        while (statusWorthChecking.includes(invoiceData['data']['payment']['status'])) {
+            if (maxAttempts > 0 && attempts >= maxAttempts) {
+                throw new Error(`Waiting for payment processing not final after ${maxAttempts} attempts`)
             }
             attempts += 1
 
-            console.log(`Payment not processed yet, waiting ${seconds_between_checks} seconds. (attempt ${attempts}/${max_attempts})`)
-            await delay(seconds_between_checks * 1000)
-            invoice_data = await this.getInvoice(invoice_id)
+            console.log(`Payment not processed yet, waiting ${secondsBetweenChecks} seconds. (attempt ${attempts}/${maxAttempts})`)
+            await delay(secondsBetweenChecks * 1000)
+            invoiceData = await this.getInvoice(invoiceId)
         }
 
-        return invoice_data
+        return invoiceData
     }
 }

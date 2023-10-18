@@ -9,7 +9,7 @@ fetchMock.enableMocks()
 describe('Client', () => {
 
     test('Ping request - Pong response', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         const expectedData = { meta: { _endpoint: '/ping' }, message: 'pong' }
@@ -20,7 +20,7 @@ describe('Client', () => {
     })
 
     test('Balance request', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         const expectedData = {
@@ -34,7 +34,7 @@ describe('Client', () => {
     })
 
     test('Products request - Args variant', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         fetchMock.mockResponse(JSON.stringify(testing.expectedDataProducts))
@@ -44,7 +44,7 @@ describe('Client', () => {
     })
 
     test('Products request - Options variant', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         fetchMock.mockResponse(JSON.stringify(testing.expectedDataProducts))
@@ -58,7 +58,7 @@ describe('Client', () => {
     })
 
     test('All products request', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         fetchMock.mockResponses(
@@ -73,7 +73,7 @@ describe('Client', () => {
     })
 
     test('Create invoice request - Args variant', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         fetchMock.mockResponse(JSON.stringify(testing.expectedDataCreateInvoice))
@@ -83,7 +83,7 @@ describe('Client', () => {
     })
 
     test('Create invoice request - Options variant', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         fetchMock.mockResponse(JSON.stringify(testing.expectedDataCreateInvoice))
@@ -98,7 +98,7 @@ describe('Client', () => {
     })
 
     test('Get invoice request', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         fetchMock.mockResponse(JSON.stringify(testing.expectedDataCreateInvoice))
@@ -108,7 +108,7 @@ describe('Client', () => {
     })
 
     test('Pay invoice request', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         fetchMock.mockResponse(JSON.stringify(testing.expectedDataPayInvoice))
@@ -118,7 +118,7 @@ describe('Client', () => {
     })
 
     test('Get order request', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         fetchMock.mockResponse(JSON.stringify(testing.expectedDataGetOrder))
@@ -128,13 +128,13 @@ describe('Client', () => {
     })
 
     test('Request - Unsupported method', async () => {
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
         await expect(client.request('VOID', '/ping')).rejects.toThrow('Unsupported method: VOID (supported: GET and POST)')
     })
 
     test('Request - Bitrefill rate limit hit', async () => {
 
-        const client = new Client('API_USER_ID', 'API_SECRET_KEY')//process.env.API_USER_ID, process.env.API_SECRET_KEY)
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
         const expectedData = { meta: { _endpoint: '/ping' }, message: 'pong' }
@@ -149,8 +149,6 @@ describe('Client', () => {
         })
 
         const result = await client.ping()
-
         expect(result).toEqual(expectedData)
     })
-
 })
