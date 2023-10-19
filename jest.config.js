@@ -1,9 +1,18 @@
 export default {
+    preset: 'ts-jest/presets/default-esm',
+    transform: {
+        '^.+\\.(ts|tsx)?$': ['ts-jest', { useESM: true }]
+    },
+    testPathIgnorePatterns: ['./dist'],
     testEnvironment: 'node',
-    testMatch: ['<rootDir>/test/**/*.test.js'],
+    testMatch: ['<rootDir>/test/**/*.test.ts'],
     collectCoverage: true,
     collectCoverageFrom: [
-        'src/**/*.js', // Adjust the path to your source files
+        'src/**/*.ts',
     ],
+    moduleNameMapper: {
+        '(.+)\\.js': '$1'
+    },
+    extensionsToTreatAsEsm: ['.ts']
     //   coverageDirectory: 'coverage',
-  }
+}

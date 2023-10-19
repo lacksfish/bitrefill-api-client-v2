@@ -390,27 +390,62 @@ export const expectedDataPayInvoice = {
 
 export const expectedDataGetOrder = {
     meta: {
-      id: '1234567890abcdef12345678',
-      _endpoint: '/orders/1234567890abcdef12345678'
+        id: '1234567890abcdef12345678',
+        _endpoint: '/orders/1234567890abcdef12345678'
     },
     data: {
-      id: '1234567890abcdef12345678',
-      status: 'created',
-      product: {
-        id: 'a-test',
-        name: 'A test',
-        value: '10',
-        currency: 'USD',
-        image: 'a-test',
-        _href: 'https://api-bitrefill.com/v2/products/a-test'
-      },
-      created_time: '2023-10-17T11:23:38.239Z',
-      delivered_time: null,
-      commission: 0,
-      user: { id: '1234567890abcdef12345678', email: 'my_personal_email@test.dev' },
-      invoice: {
-        id: '12345678-90ab-cdef-1234-567890abcdef',
-        _href: 'https://api-bitrefill.com/v2/invoices/12345678-90ab-cdef-1234-567890abcdef'
-      }
+        id: '1234567890abcdef12345678',
+        status: 'created',
+        product: {
+            id: 'a-test',
+            name: 'A test',
+            value: '10',
+            currency: 'USD',
+            image: 'a-test',
+            _href: 'https://api-bitrefill.com/v2/products/a-test'
+        },
+        created_time: '2023-10-17T11:23:38.239Z',
+        delivered_time: null,
+        commission: 0,
+        user: { id: '1234567890abcdef12345678', email: 'my_personal_email@test.dev' },
+        invoice: {
+            id: '12345678-90ab-cdef-1234-567890abcdef',
+            _href: 'https://api-bitrefill.com/v2/invoices/12345678-90ab-cdef-1234-567890abcdef'
+        }
     }
-  }
+}
+
+export const expectedDataGetOrders = {
+    "meta": {
+        "start": 0,
+        "limit": 1,
+        "_endpoint": "/orders",
+        "count": 1,
+        "_next": "https://api-bitrefill.com/v2/orders?start=1&limit=1"
+    },
+    "data": [
+        {
+            "id": "1234567890abcdef12345678",
+            "status": "permanent_failure",
+            "product": {
+                "id": "test-gift-card-code-fail",
+                "name": "Test Gift Card Code (Fail)",
+                "value": "10",
+                "currency": "USD",
+                "image": "this_is_a_test",
+                "_href": "https://api-bitrefill.com/v2/products/test-gift-card-code-fail"
+            },
+            "created_time": "2023-10-17T13:17:36.952Z",
+            "delivered_time": null,
+            "commission": 0,
+            "user": {
+                "id": "1234567890abcdef12345678",
+                "email": "my_personal_email@test.dev"
+            },
+            "invoice": {
+                "id": "12345678-90ab-cdef-1234-567890abcdef",
+                "_href": "https://api-bitrefill.com/v2/invoices/12345678-90ab-cdef-1234-567890abcdef"
+            }
+        }
+    ]
+}

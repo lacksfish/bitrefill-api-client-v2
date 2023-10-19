@@ -1,10 +1,14 @@
 import { delay, headersToObject } from '../utils/utils.js'
 import { handleAPIError } from './errorHandler.js'
 
-export default class Client {
-    url
+import { APIResponse, CheckPhoneNumberOptions, CreateInvoiceOptions, GetOrdersOptions, ProductsOptions } from '../types/types.js'
+import { URLSearchParams } from 'url'
 
-    constructor(apiId, apiSecretKey, url = 'https://api-bitrefill.com/v2') {
+export default class Client {
+    public url: string
+    private authorization: string
+
+    constructor(apiId: string, apiSecretKey: string, url: string = 'https://api-bitrefill.com/v2') {
         this.url = url
         this.authorization = btoa(apiId + ':' + apiSecretKey)
     }
@@ -18,7 +22,7 @@ export default class Client {
         return headers
     }
 
-    async request(method, endpoint, params = null) {
+    async request(method: string, endpoint: string, params: Record<string, any> = null): Promise<APIResponse> {
         const headers = this._prepareHeaders()
         let response
         method = method.toUpperCase()
@@ -52,17 +56,22 @@ export default class Client {
     }
 
     // --- API METHODS ---
-    async ping() {
+    async ping(): Promise<APIResponse> {
         const data = await this.request('GET', 'ping')
         return data
     }
 
-    async balance() {
+    async balance(): Promise<APIResponse> {
         const data = await this.request('GET', 'accounts/balance')
         return data
     }
 
-    async products(start = 0, limit = 50, include_test_products = false) {
+    async checkPhoneNumber(params: CheckPhoneNumberOptions): Promise<APIResponse> {
+        const data = await this.request('GET', 'check_phone_number')
+        return data
+    }
+
+    async products(start: ProductsOptions | number = 0, limit: number = 50, include_test_products: boolean = false): Promise<APIResponse> {
         // Support for options parameters
         if (typeof start == 'object') {
             const options = start
@@ -79,16 +88,16 @@ export default class Client {
         return data
     }
 
-    async productsAll(include_test_products = false) {
+    async productsAll(include_test_products: boolean = false): Promise<APIResponse> {
         let products = {
             // TODO: Should provide synth meta data for batched request ?
             "meta": { "_endpoint": "/products", "include_test_products": `${include_test_products}`, },
             "data": []
         }
 
-        // TODO/NOTE: Too many simultaneous requests will get you temporarily banned on Cloudflare :(
+        // NOTE: Too many simultaneous requests will get you temporarily banned on Cloudflare :(
         const increment = 50 // Max limit per request
-        const batchSize = 10
+        const batchSize = 10 // Good compromise value for now
         let count = 0
         let doRequests = true
 
@@ -132,8 +141,10 @@ export default class Client {
         return products
     }
 
-    // TODO eval all params...
-    async createInvoice(product_id, value, quantity, auto_pay = false, payment_method = "balance", webhook_url = null) {
+    createInvoice(product_id: CreateInvoiceOptions): Promise<APIResponse>;
+    createInvoice(product_id: string, value: number, quantity: number): Promise<APIResponse>;
+    createInvoice(product_id: string, value: number, quantity: number, auto_pay?: boolean, payment_method?: string, webhook_url?: string): Promise<APIResponse>;
+    async createInvoice(product_id: CreateInvoiceOptions | string, value?: number, quantity?: number, auto_pay: boolean = false, payment_method: string = "balance", webhook_url: string | null = null): Promise<APIResponse> {
         // Support for options parameters
         if (typeof product_id == 'object') {
             const options = product_id
@@ -161,35 +172,39 @@ export default class Client {
         return data
     }
 
-    async getInvoice(invoiceId) {
+    async getInvoice(invoiceId: string): Promise<APIResponse> {
         const data = await this.request('GET', `invoices/${invoiceId}`)
         return data
     }
 
-    async payInvoice(invoiceId) {
+    async payInvoice(invoiceId: string): Promise<APIResponse> {
         const data = await this.request('POST', `invoices/${invoiceId}/pay`, {})
         return data
     }
 
-    // TODO: args - check docs
-    async getOrder(orderId) {
+    async getOrder(orderId: string): Promise<APIResponse> {
         const data = await this.request('GET', `orders/${orderId}`)
         return data
     }
 
+    async getOrders(params: GetOrdersOptions): Promise<APIResponse> {
+        const data = await this.request('GET', 'orders', params)
+        return data
+    }
+
     // A way to wait for payment completion without relying on the webhook service
-    async waitForInvoicePayment(invoiceId, secondsBetweenChecks = 10, maxAttempts = undefined) {
+    async waitForInvoicePayment(invoiceId: string, secondsBetweenChecks: number = 10, maxAttempts: null = null): Promise<APIResponse> {
         let invoiceData = await this.getInvoice(invoiceId)
         let attempts = 0
         // TODO: Which states do we want to wait on
         const statusWorthChecking = ['unpaid', 'processing', 'payment_confirmed']
         while (statusWorthChecking.includes(invoiceData['data']['payment']['status'])) {
-            if (maxAttempts > 0 && attempts >= maxAttempts) {
+            if (maxAttempts && maxAttempts > 0 && attempts >= maxAttempts) {
                 throw new Error(`Waiting for payment processing not final after ${maxAttempts} attempts`)
             }
             attempts += 1
 
-            console.log(`Payment not processed yet, waiting ${secondsBetweenChecks} seconds. (attempt ${attempts}/${maxAttempts})`)
+            console.log(`Payment not processed yet, waiting ${secondsBetweenChecks} seconds. (attempt ${attempts}${!!maxAttempts ? '/'+maxAttempts : ''})`)
             await delay(secondsBetweenChecks * 1000)
             invoiceData = await this.getInvoice(invoiceId)
         }

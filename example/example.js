@@ -1,6 +1,6 @@
-import { Client } from '../src/index.js'
-
 import dotenv from 'dotenv'
+import Client from '../dist/index.js'
+
 dotenv.config()
 
 const checkForPayment = async (client, pay_invoice_data) => {

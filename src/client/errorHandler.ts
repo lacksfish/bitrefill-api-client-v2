@@ -1,4 +1,6 @@
-export async function handleAPIError(endpoint, response) {
+import { APIResponse } from '../types/types.js'
+
+export async function handleAPIError(endpoint: string, response: APIResponse): Promise<APIResponse> {
     if (!response.ok) {
         if (response.status === 400) {
             throw new Error('Bad request. Missing parameters.')
@@ -45,6 +47,12 @@ export async function handleAPIError(endpoint, response) {
         if (endpoint.includes('orders/')) {
             if (response.status === 404) {
                 throw new Error('Order not found.')
+            }
+        }
+
+        if (endpoint.includes('check_phone_number')) {
+            if (response.status === 404) {
+                throw new Error('Unable to find any providers for the specified phone number.')
             }
         }
     }

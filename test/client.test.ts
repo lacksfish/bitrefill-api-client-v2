@@ -1,10 +1,11 @@
-import fetchMock from 'jest-fetch-mock'
+import fetch from 'jest-fetch-mock'
+// Note: if fetch doesn't work, import fetch instead of fetch and replace all occurences of fetch with fetch
 
-import Client from '../src/client/client'
-import * as testing from './expected/data.js'
+import Client from '../src/index'
+import * as testing from './expected/data'
 
 // Mock the fetch function
-fetchMock.enableMocks()
+fetch.enableMocks()
 
 describe('Client', () => {
 
@@ -13,7 +14,7 @@ describe('Client', () => {
 
         // Mock API response
         const expectedData = { meta: { _endpoint: '/ping' }, message: 'pong' }
-        fetchMock.mockResponse(JSON.stringify(expectedData))
+        fetch.mockResponse(JSON.stringify(expectedData))
 
         const result = await client.ping()
         expect(result).toEqual(expectedData)
@@ -27,7 +28,7 @@ describe('Client', () => {
             meta: { _endpoint: '/accounts/balance' },
             data: { balance: 10000000, currency: 'BTC' }
         }
-        fetchMock.mockResponse(JSON.stringify(expectedData))
+        fetch.mockResponse(JSON.stringify(expectedData))
 
         const result = await client.balance()
         expect(result).toEqual(expectedData)
@@ -37,7 +38,7 @@ describe('Client', () => {
         const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
-        fetchMock.mockResponse(JSON.stringify(testing.expectedDataProducts))
+        fetch.mockResponse(JSON.stringify(testing.expectedDataProducts))
 
         const result = await client.products(0, 50, false)
         expect(result).toEqual(testing.expectedDataProducts)
@@ -47,7 +48,7 @@ describe('Client', () => {
         const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
-        fetchMock.mockResponse(JSON.stringify(testing.expectedDataProducts))
+        fetch.mockResponse(JSON.stringify(testing.expectedDataProducts))
 
         const result = await client.products({
             start: 0,
@@ -61,9 +62,9 @@ describe('Client', () => {
         const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
-        fetchMock.mockResponses(
-            [JSON.stringify(testing.expectedDataProductsAll_request1)],
-            [JSON.stringify(testing.expectedDataProductsAll_request2)],
+        fetch.mockResponses(
+            JSON.stringify(testing.expectedDataProductsAll_request1),
+            JSON.stringify(testing.expectedDataProductsAll_request2),
             // The other 8 requests of a 10 request batch would be empty when using batched requests
             ...[...Array(8)].map((_, i) => JSON.stringify(testing.expectedDataProductsAll_request_further))
         )
@@ -76,9 +77,9 @@ describe('Client', () => {
         const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
-        fetchMock.mockResponse(JSON.stringify(testing.expectedDataCreateInvoice))
+        fetch.mockResponse(JSON.stringify(testing.expectedDataCreateInvoice))
 
-        const result = await client.createInvoice(testing.expectedDataProducts.data[0].id, testing.expectedDataProducts.data[0]['packages'][0]['value'], 1)
+        const result = await client.createInvoice(testing.expectedDataProducts.data[0].id, parseInt(testing.expectedDataProducts.data[0]['packages'][0]['value']), 1)
         expect(result).toEqual(testing.expectedDataCreateInvoice)
     })
 
@@ -86,11 +87,11 @@ describe('Client', () => {
         const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
-        fetchMock.mockResponse(JSON.stringify(testing.expectedDataCreateInvoice))
+        fetch.mockResponse(JSON.stringify(testing.expectedDataCreateInvoice))
 
         const result = await client.createInvoice({
-            product_id: testing.expectedDataProducts.data[0].id, 
-            value: testing.expectedDataProducts.data[0]['packages'][0]['value'],
+            product_id: testing.expectedDataProducts.data[0].id,
+            value: parseInt(testing.expectedDataProducts.data[0]['packages'][0]['value']),
             quantity: 1
         })
 
@@ -101,7 +102,7 @@ describe('Client', () => {
         const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
-        fetchMock.mockResponse(JSON.stringify(testing.expectedDataCreateInvoice))
+        fetch.mockResponse(JSON.stringify(testing.expectedDataCreateInvoice))
 
         const result = await client.getInvoice(testing.expectedDataCreateInvoice['data']['id'])
         expect(result).toEqual(testing.expectedDataCreateInvoice)
@@ -111,7 +112,7 @@ describe('Client', () => {
         const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
-        fetchMock.mockResponse(JSON.stringify(testing.expectedDataPayInvoice))
+        fetch.mockResponse(JSON.stringify(testing.expectedDataPayInvoice))
 
         const result = await client.payInvoice(testing.expectedDataPayInvoice['data']['id'])
         expect(result).toEqual(testing.expectedDataPayInvoice)
@@ -121,10 +122,22 @@ describe('Client', () => {
         const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
-        fetchMock.mockResponse(JSON.stringify(testing.expectedDataGetOrder))
+        fetch.mockResponse(JSON.stringify(testing.expectedDataGetOrder))
 
         const result = await client.getOrder(testing.expectedDataPayInvoice['data']['id'])
         expect(result).toEqual(testing.expectedDataGetOrder)
+    })
+
+    test('Get orders list request', async () => {
+        const client = new Client('API_USER_ID', 'API_SECRET_KEY')
+
+        // Mock API response
+        fetch.mockResponse(JSON.stringify(testing.expectedDataGetOrders))
+
+        const result = await client.getOrders({
+            limit: 1
+        })
+        expect(result).toEqual(testing.expectedDataGetOrders)
     })
 
     test('Request - Unsupported method', async () => {
@@ -133,7 +146,6 @@ describe('Client', () => {
     })
 
     test('Request - Bitrefill rate limit hit', async () => {
-
         const client = new Client('API_USER_ID', 'API_SECRET_KEY')
 
         // Mock API response
@@ -143,7 +155,7 @@ describe('Client', () => {
             'ratelimit-remaining': '0',
             'ratelimit-reset': '3'
         }
-        fetchMock.mockResponseOnce(JSON.stringify(expectedData), {
+        fetch.mockResponseOnce(JSON.stringify(expectedData), {
             status: 200,
             headers
         })
