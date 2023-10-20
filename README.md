@@ -29,6 +29,7 @@ const ping = await client.ping()
    ```
 
    Example code on how to use the library can be found in `example\example.js`
+   Make sure to create a `.env` file (see `.env.example`) with your API credentials
 
 ## Contributing
 
