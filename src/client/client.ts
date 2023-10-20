@@ -1,7 +1,7 @@
 import { delay, headersToObject } from '../utils/utils.js'
 import { handleAPIError } from './errorHandler.js'
 
-import { APIResponse, CheckPhoneNumberOptions, CreateInvoiceOptions, GetOrdersOptions, ProductsOptions } from '../types/types.js'
+import { APIResponse, CheckPhoneNumberOptions, CommissionsOptions, CreateInvoiceOptions, GetOrdersOptions, ProductsOptions } from '../types/types.js'
 import { URLSearchParams } from 'url'
 
 export default class Client {
@@ -61,7 +61,7 @@ export default class Client {
         return data
     }
 
-    async balance(): Promise<APIResponse> {
+    async getBalance(): Promise<APIResponse> {
         const data = await this.request('GET', 'accounts/balance')
         return data
     }
@@ -70,8 +70,13 @@ export default class Client {
         const data = await this.request('GET', 'check_phone_number')
         return data
     }
+    
+    async getCommissions(params: CommissionsOptions): Promise<APIResponse> {
+        const data = await this.request('GET', 'commissions')
+        return data
+    }
 
-    async products(start: ProductsOptions | number = 0, limit: number = 50, include_test_products: boolean = false): Promise<APIResponse> {
+    async getProducts(start: ProductsOptions | number = 0, limit: number = 50, include_test_products: boolean = false): Promise<APIResponse> {
         // Support for options parameters
         if (typeof start == 'object') {
             const options = start
@@ -88,7 +93,7 @@ export default class Client {
         return data
     }
 
-    async productsAll(include_test_products: boolean = false): Promise<APIResponse> {
+    async getProductsAll(include_test_products: boolean = false): Promise<APIResponse> {
         let products = {
             // TODO: Should provide synth meta data for batched request ?
             "meta": { "_endpoint": "/products", "include_test_products": `${include_test_products}`, },
@@ -141,9 +146,9 @@ export default class Client {
         return products
     }
 
-    createInvoice(product_id: CreateInvoiceOptions): Promise<APIResponse>;
-    createInvoice(product_id: string, value: number, quantity: number): Promise<APIResponse>;
-    createInvoice(product_id: string, value: number, quantity: number, auto_pay?: boolean, payment_method?: string, webhook_url?: string): Promise<APIResponse>;
+    createInvoice(product_id: CreateInvoiceOptions): Promise<APIResponse>
+    createInvoice(product_id: string, value: number, quantity: number): Promise<APIResponse>
+    createInvoice(product_id: string, value: number, quantity: number, auto_pay?: boolean, payment_method?: string, webhook_url?: string): Promise<APIResponse>
     async createInvoice(product_id: CreateInvoiceOptions | string, value?: number, quantity?: number, auto_pay: boolean = false, payment_method: string = "balance", webhook_url: string | null = null): Promise<APIResponse> {
         // Support for options parameters
         if (typeof product_id == 'object') {

@@ -25,6 +25,11 @@ export interface CheckPhoneNumberOptions {
     operator?: string
 }
 
+export interface CommissionsOptions {
+    start?: number
+    limit?: number
+}
+
 export interface APIResponse {
     meta: APIResponseMetaField
     data: any | any[]

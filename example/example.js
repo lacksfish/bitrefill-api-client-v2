@@ -4,8 +4,6 @@ import Client from '../dist/index.js'
 dotenv.config()
 
 const checkForPayment = async (client, pay_invoice_data) => {
-    let order_data = await client.getOrder(pay_invoice_data['data']['orders'][0]['id'])
-
     if (pay_invoice_data.data.payment.status == 'payment_confirmed') {
         // Wait for processing to complete
         await client.waitForInvoicePayment(pay_invoice_data['data']['id'], 5)
@@ -25,7 +23,7 @@ const checkForPayment = async (client, pay_invoice_data) => {
 let c = new Client(process.env.API_USER_ID, process.env.API_SECRET_KEY)
 
 // Request all products, then filter all test products
-let allProducts = await c.productsAll(true)
+let allProducts = await c.getProductsAll(true)
 
 // Need to filter out false-positive with id: "test-kitchen-phillipines"
 const testProducts = allProducts.data.filter((product) => product.id.startsWith("test-gift-card") || product.id.startsWith("test-phone-refill"))
@@ -57,7 +55,7 @@ await checkForPayment(c, pay_invoice_data)
 
 // // Extract all products to json file
 // import fs from 'fs'
-// let products = await c.productsAll(true) //4250, 50, true)
+// let products = await c.getProductsAll(true) //4250, 50, true)
 // const prettifiedJSON = JSON.stringify(products, null, 2)
 // fs.writeFile('products_all.json', prettifiedJSON, 'utf8', (err) => {
 //   if (err) {

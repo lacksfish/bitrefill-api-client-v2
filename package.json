@@ -1,5 +1,5 @@
 {
-    "name": "bitrefill-api-v2",
+    "name": "bitrefill-api-client-v2",
     "version": "0.0.9",
     "description": "Bitrefill v2 API client",
     "scripts": {

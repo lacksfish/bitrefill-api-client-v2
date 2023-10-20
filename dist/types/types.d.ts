@@ -17,6 +17,14 @@ export interface GetOrdersOptions {
     after?: string;
     before?: string;
 }
+export interface CheckPhoneNumberOptions {
+    phone_number: string;
+    operator?: string;
+}
+export interface CommissionsOptions {
+    start?: number;
+    limit?: number;
+}
 export interface APIResponse {
     meta: APIResponseMetaField;
     data: any | any[];
@@ -29,8 +37,4 @@ export interface APIResponseMetaField {
     limit?: number;
     include_test_products?: string;
     [key: string]: any;
-}
-export interface CheckPhoneNumberOptions {
-    phone_number: string;
-    operator?: string;
 }

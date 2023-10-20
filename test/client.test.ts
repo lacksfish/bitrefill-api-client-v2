@@ -30,7 +30,7 @@ describe('Client', () => {
         }
         fetch.mockResponse(JSON.stringify(expectedData))
 
-        const result = await client.balance()
+        const result = await client.getBalance()
         expect(result).toEqual(expectedData)
     })
 
@@ -40,7 +40,7 @@ describe('Client', () => {
         // Mock API response
         fetch.mockResponse(JSON.stringify(testing.expectedDataProducts))
 
-        const result = await client.products(0, 50, false)
+        const result = await client.getProducts(0, 50, false)
         expect(result).toEqual(testing.expectedDataProducts)
     })
 
@@ -50,7 +50,7 @@ describe('Client', () => {
         // Mock API response
         fetch.mockResponse(JSON.stringify(testing.expectedDataProducts))
 
-        const result = await client.products({
+        const result = await client.getProducts({
             start: 0,
             limit: 50,
             include_test_products: false
@@ -69,7 +69,7 @@ describe('Client', () => {
             ...[...Array(8)].map((_, i) => JSON.stringify(testing.expectedDataProductsAll_request_further))
         )
 
-        const result = await client.productsAll()
+        const result = await client.getProductsAll()
         expect(result).toEqual(testing.expectedDataProductsAll)
     })
 

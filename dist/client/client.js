@@ -127,7 +127,7 @@ var Client = /** @class */ (function () {
             });
         });
     };
-    Client.prototype.balance = function () {
+    Client.prototype.getBalance = function () {
         return __awaiter(this, void 0, void 0, function () {
             var data;
             return __generator(this, function (_a) {
@@ -153,7 +153,20 @@ var Client = /** @class */ (function () {
             });
         });
     };
-    Client.prototype.products = function (start, limit, include_test_products) {
+    Client.prototype.getCommissions = function (params) {
+        return __awaiter(this, void 0, void 0, function () {
+            var data;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.request('GET', 'commissions')];
+                    case 1:
+                        data = _a.sent();
+                        return [2 /*return*/, data];
+                }
+            });
+        });
+    };
+    Client.prototype.getProducts = function (start, limit, include_test_products) {
         if (start === void 0) { start = 0; }
         if (limit === void 0) { limit = 50; }
         if (include_test_products === void 0) { include_test_products = false; }
@@ -181,7 +194,7 @@ var Client = /** @class */ (function () {
             });
         });
     };
-    Client.prototype.productsAll = function (include_test_products) {
+    Client.prototype.getProductsAll = function (include_test_products) {
         if (include_test_products === void 0) { include_test_products = false; }
         return __awaiter(this, void 0, void 0, function () {
             var products, increment, batchSize, count, doRequests, batch, batchRequests, responses, error_1;
@@ -314,7 +327,6 @@ var Client = /** @class */ (function () {
             });
         });
     };
-    // TODO: args - check docs
     Client.prototype.getOrder = function (orderId) {
         return __awaiter(this, void 0, void 0, function () {
             var data;

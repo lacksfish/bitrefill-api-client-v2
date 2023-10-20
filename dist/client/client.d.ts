@@ -1,4 +1,4 @@
-import { APIResponse, CheckPhoneNumberOptions, CreateInvoiceOptions, GetOrdersOptions, ProductsOptions } from '../types/types.js';
+import { APIResponse, CheckPhoneNumberOptions, CommissionsOptions, CreateInvoiceOptions, GetOrdersOptions, ProductsOptions } from '../types/types.js';
 export default class Client {
     url: string;
     private authorization;
@@ -10,10 +10,11 @@ export default class Client {
     };
     request(method: string, endpoint: string, params?: Record<string, any>): Promise<APIResponse>;
     ping(): Promise<APIResponse>;
-    balance(): Promise<APIResponse>;
+    getBalance(): Promise<APIResponse>;
     checkPhoneNumber(params: CheckPhoneNumberOptions): Promise<APIResponse>;
-    products(start?: ProductsOptions | number, limit?: number, include_test_products?: boolean): Promise<APIResponse>;
-    productsAll(include_test_products?: boolean): Promise<APIResponse>;
+    getCommissions(params: CommissionsOptions): Promise<APIResponse>;
+    getProducts(start?: ProductsOptions | number, limit?: number, include_test_products?: boolean): Promise<APIResponse>;
+    getProductsAll(include_test_products?: boolean): Promise<APIResponse>;
     createInvoice(product_id: CreateInvoiceOptions): Promise<APIResponse>;
     createInvoice(product_id: string, value: number, quantity: number): Promise<APIResponse>;
     createInvoice(product_id: string, value: number, quantity: number, auto_pay?: boolean, payment_method?: string, webhook_url?: string): Promise<APIResponse>;
