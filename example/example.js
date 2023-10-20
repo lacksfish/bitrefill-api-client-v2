@@ -22,10 +22,10 @@ const checkForPayment = async (client, pay_invoice_data) => {
 
 let c = new Client(process.env.API_USER_ID, process.env.API_SECRET_KEY)
 
-// Request all products, then filter all test products
+// Request all products
 let allProducts = await c.getProductsAll(true)
 
-// Need to filter out false-positive with id: "test-kitchen-phillipines"
+// Filter all test products | Need to filter out false-positive with id: "test-kitchen-phillipines"
 const testProducts = allProducts.data.filter((product) => product.id.startsWith("test-gift-card") || product.id.startsWith("test-phone-refill"))
 
 // List the name of all test products
