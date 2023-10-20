@@ -5,9 +5,5 @@ export function delay(ms) {
 }
 
 export function headersToObject(headers) {
-    const headersObject = {}
-    for (const [key, value] of headers.entries()) {
-      headersObject[key] = value
-    }
-    return headersObject
+    return Object.fromEntries(headers.entries())
 }

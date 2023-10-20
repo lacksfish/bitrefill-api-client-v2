@@ -23,7 +23,7 @@ export default class Client {
     }
 
     async request(method: string, endpoint: string, params: Record<string, any> = null): Promise<APIResponse> {
-        const headers = this._prepareHeaders()
+        let headers = this._prepareHeaders()
         let response
         method = method.toUpperCase()
         if (method == 'GET') {
@@ -44,7 +44,7 @@ export default class Client {
             throw new Error(`Unsupported method: ${method} (supported: GET and POST)`)
         }
 
-        let responseHeaders = headersToObject(response.headers)
+        const responseHeaders = headersToObject(response.headers)
 
         // Handle rate limit with waiting
         if (responseHeaders['ratelimit-remaining'] == 0) {
