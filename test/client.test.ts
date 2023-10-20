@@ -1,5 +1,5 @@
 import fetch from 'jest-fetch-mock'
-// Note: if fetch doesn't work, import fetch instead of fetch and replace all occurences of fetch with fetch
+// Note: if importing fetch doesn't work, try importing fetchMock
 
 import Client from '../src/index'
 import * as testing from './expected/data'
